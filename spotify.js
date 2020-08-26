@@ -3,6 +3,7 @@ var fadeTime = 500;
 var updateMs = 2000;
 
 function control(type){
+    update();
     $.ajax({
         async: true,
         url: 'http://localhost:8080/control',
@@ -16,6 +17,8 @@ function control(type){
 var mySong;
 var myArtist;
 var myAlbum;
+var isPlaying;
+
 // Fades first text, only called once
 function start(){
     $.ajax({
@@ -23,6 +26,7 @@ function start(){
         url: 'http://localhost:8080/currently-playing',
         type: 'GET',
         success: function(data) {
+            isPlaying = data.body.is_playing;
             console.log(data);
             if (data.statusCode == 200){
                 document.getElementById("song").innerHTML = data.body.item.name;
@@ -54,6 +58,7 @@ function update(){
         type: 'GET',
         success: function(data) {
             if (data.statusCode == 200){
+                isPlaying = data.body.is_playing;
                 var remaining_ms = data.body.item.duration_ms - data.body.progress_ms;
                 // Get precise end of song within the last update
                 if (remaining_ms < updateMs && remaining_ms != 0) {
@@ -98,27 +103,18 @@ function update(){
 
 // Toggle playback
 var singleClick = function(){
-    $.ajax({
-        async: true,
-        url: 'http://localhost:8080/currently-playing',
-        type: 'GET',
-        success: function(data) {
-            console.log(data.body);
-            var isPlaying = data.body.is_playing;
-            // Play if paused; pause if playing
-            if (isPlaying == true){
-                control('pause');
-                console.log('Pausing music');
-            }
-            else if (isPlaying == false){
-                control('play');
-                console.log('Playing music');
-            }
-            else {
-                console.log('No track loaded');
-            };
-        }
-    });
+    // Play if paused; pause if playing
+    if (isPlaying == true){
+        control('pause');
+        console.log('Pausing music');
+    }
+    else if (isPlaying == false){
+        control('play');
+        console.log('Playing music');
+    }
+    else {
+        console.log('No track loaded');
+    };
 };
 
 // Get mouse x position
@@ -168,14 +164,16 @@ var fullScreen = function() {
 var firing = false;
 var firingFunc = singleClick;
 window.onclick = function() {
-    if(firing)
-        return;
-    firing = true;
-    timer = setTimeout(function() { 
-        firingFunc(); 
-        firingFunc = singleClick;
-        firing = false;
-  }, 300);
+    //if(firing)
+    //    return;
+    //firing = true;
+    //timer = setTimeout(function() { 
+    //    firingFunc(); 
+    //    firingFunc = singleClick;
+    //    firing = false;
+    //}, 300);
+    firingFunc = singleClick;
+    firingFunc();
 
 };
 
